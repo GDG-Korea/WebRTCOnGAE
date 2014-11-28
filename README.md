@@ -4,7 +4,7 @@ GDG Korea DevFair 2014의 Codelab 에서 사용될 Repo 입니다.
 
 ## Pre-requisite
 
-본 Codelab을 진행하기 위해 필요한 것들 입니다. 코드랩 장소의 네트워크에 많은 분들이 동시에 접근하셔서 네트워크상황이 좋지 않을 가능성이 높기 때문에 개발관련 Tool은 미리 설치해오시기 바랍니다. 
+본 Codelab을 진행하기 위해 필요한 것들 입니다. 코드랩 장소의 네트워크에 많은 분들이 동시에 접근하셔서 네트워크상황이 좋지 않을 가능성이 높기 때문에 개발관련 Tool은 미리 설치해오시기 바랍니다.
 
 
 #### 선수지식
@@ -36,12 +36,12 @@ GDG Korea DevFair 2014의 Codelab 에서 사용될 Repo 입니다.
 
 ## CodeLab 목차
 
-- WebRTC 란? (20분)
-- Codelab 환경 설정 (20분)
-- Setup the playground. : GAE 첫 Deploy (10분)
-- 내가 이렇게 생겼군. : GetUserMedia 실행 (20분)
-- Signaling Server 구성 : Channel API 설정. (20분)
-- PeerConnection 연결하기 (40분)
-- Streaming 연결하기 (20분)
-- 채팅 연결하기 : DataChannel 연결 (30분)
-- 화면 이쁘게 꾸미기 & 질의응답 (나머지 시간)
+- WebRTC 란? (~13:20, 20분)
+- Codelab 환경 설정 (~13:40, 20분)
+- [Setup the playground.](SETUP_THE_PLAYGROUND.md) : GAE 첫 Deploy (~13:50, 10분)
+- [내가 이렇게 생겼군.](GETUSERMEDIA.md) : GetUserMedia 실행 (~14:10, 20분)
+- [Signaling Server 구성](SIGNALING.md) : Channel API 설정. (~14:30, 20분)
+- [PeerConnection 연결하기](PEERCONNECTION.md) (~15:10, 40분)
+- [Streaming 연결하기](STREAMING.md) (~15:30, 20분)
+- [채팅 연결하기](DATACHANNEL.md) : DataChannel 연결 (~15:50, 20분)
+- [화면 이쁘게 꾸미기 & 질의응답](REMAINING.md) (나머지 시간)
