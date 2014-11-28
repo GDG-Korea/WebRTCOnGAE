@@ -94,4 +94,5 @@ body에 아래의 형태로 모양을 꾸밉니다. **이쁘게 만드는 것은
 - 배포이후에는 http://{application-id}.appspot.com 에 로컬에서 확인한 화면이 나오면 정상적으로 완료된 것입니다.
 
 ##Next
--
+
+- [내가 이렇게 생겼군.](GETUSERMEDIA.md)
