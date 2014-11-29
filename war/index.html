@@ -1,0 +1,235 @@
+<html>
+<head>
+    <script src="jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+    <script type="text/javascript" src="/console.image.min.js"></script>
+    <script>
+        console.image('http://nurinamu.appspot.com/devfair.jpg');
+        console.image('http://nurinamu.appspot.com/webrtc.png');
+
+
+        var gaeChannel, gaeSocket;
+        var connectedRoom;
+        var localTimeStamp;
+        var localStream;
+        var chatArea, chatMsg;
+
+        var serverConfig = {'iceServers' : [{'url':'stun:stun.l.google.com:19302'}]};
+
+        var peerConnection;
+
+        $(document).ready(function(){
+            console.log('%c반갑습니다. 이제 시작해볼까요? - nurinamu', 'font-size:50px;color:blue;');
+
+            localTimeStamp = new Date().getTime();
+            chatArea = $('#chatArea');
+            chatMsg = $('#chatMsg');
+
+            openMyVideo();
+
+            $('#connectBtn').click(function(){
+                openChannel();
+            });
+        });
+
+        function openChannel(){
+            $.ajax({
+                url:'/signal',
+                type:'get',
+                dataType:'json',
+                data:{
+                    room:$('#room').val()
+                },
+                success:function(resp_){
+                    if(resp_.result == 'success'){
+                        connectedRoom = resp_.room;
+
+                        gaeChannel = new goog.appengine.Channel(resp_.token);
+                        gaeSocket = gaeChannel.open();
+                        gaeSocket.onopen = function(){
+                            console.log("Welcome to the WebRTC world");
+                            sendSignal({type:'hello', m:localTimeStamp});
+                        }
+                        gaeSocket.onmessage = parseSignal;
+                    }else{
+                        alert('연결실패');
+                    }
+                }
+            });
+        }
+
+        function openMyVideo(){
+            navigator.webkitGetUserMedia({'audio':true, 'video':true}, function(stream){
+                localStream = stream;
+                $('#localVideo').attr('src', webkitURL.createObjectURL(stream));
+            },function(err_){console.log(err_)});
+        }
+
+        function sendSignal(msgObj_){
+            var msg = JSON.stringify(msgObj_);
+            console.log('send msg : '+msg);
+            $.ajax({
+                url:'/signal',
+                type:'post',
+                dataType:'json',
+                data:{
+                    room: connectedRoom,
+                    msg:msg
+                },
+                success:function(resp){
+                }
+            });
+
+        }
+
+        function createPeerConnection(){
+            var pc = new window.webkitRTCPeerConnection(serverConfig);
+            pc.onicecandidate = function(event_){
+                if(event.candidate){
+                    sendSignal({
+                        type:'candidate',
+                        m:localTimeStamp,
+                        candidate:event_.candidate.candidate
+                    });
+                }
+            };
+
+            if(localStream) pc.addStream(localStream);
+
+            pc.onaddstream = function(event_){
+                $('#remoteVideo').attr('src', webkitURL.createObjectURL(event_.stream));
+            };
+
+            pc.ondatachannel = function(event_){
+                console.log('datachannel event -> '+event_);
+                initDataChannel(event_.channel);
+            };
+
+            pc.oniceconnectionstatechange = function(event_){
+                console.log('ICEConnState-> '+event_.target.iceConnectionState);
+            };
+
+            return pc;
+        }
+
+        function initDataChannel(dc_){
+
+            dc_.onerror = function(error_){
+                console.log('datachannel error : '+error_);
+            }
+
+            dc_.onmessage = function(event_){
+                console.log('received dc data : '+event_.data);
+                addChat('Remote : '+event_.data);
+            }
+
+            dc_.onopen = function(){
+                console.log('dc is opened');
+
+                chatMsg.attr('disabled',false);
+
+                chatMsg.keydown(function(event_){
+                    if(event_.keyCode == 13){
+                        addChat('Local : '+chatMsg.val());
+                        dc_.send(chatMsg.val());
+                        chatMsg.val('');
+                    }
+                });
+            }
+
+            dc_.onclose = function(){
+                console.log('dc is disconnected');
+            }
+        }
+
+        function addChat(msg_){
+            chatArea.append(msg_+'\n');
+            chatArea[0].scrollTop = chatArea[0].scrollHeight;
+        }
+
+        function openDataChannel(pc_){
+            console.log('try to open datachannel');
+            try{
+                dataChannel = pc_.createDataChannel(connectedRoom);
+
+                //console.log("dc state-> "+dataChannel.readyState);
+            }catch(e){
+                console.log(e);
+            }
+            initDataChannel(dataChannel);
+        }
+
+        function parseSignal(signal_){
+            var signalObj  = JSON.parse(signal_.data);
+            if(signalObj.m == localTimeStamp) return;
+            console.log('received signal : '+ signal_.data);
+            if(signalObj.type == 'hello'){
+                peerConnection = createPeerConnection();
+                openDataChannel(peerConnection);
+                peerConnection.createOffer(function(sd_){
+                    sendSignal({
+                        type:'offer',
+                        sdp:sd_.sdp,
+                        m:localTimeStamp
+                    });
+
+                    peerConnection.setLocalDescription(sd_);
+                });
+            }else if(signalObj.type == 'offer'){
+                peerConnection = createPeerConnection();
+                peerConnection.setRemoteDescription(new RTCSessionDescription(signalObj));
+                peerConnection.createAnswer(function(sd_){
+                    sendSignal({
+                        type:'answer',
+                        sdp:sd_.sdp,
+                        m:localTimeStamp
+                    });
+
+                    peerConnection.setLocalDescription(sd_);
+                });
+
+            }else if(signalObj.type == 'answer'){
+                peerConnection.setRemoteDescription(new RTCSessionDescription(signalObj));
+            }else if(signalObj.type == 'candidate'){
+                if(peerConnection){
+                    peerConnection.addIceCandidate(new RTCIceCandidate({candidate:signalObj.candidate}));
+                }
+            }else if(signalObj.type == 'bye'){
+
+            }
+        }
+    </script>
+</head>
+
+<body>
+<!--화상 테이블-->
+<table width="100%" border="1">
+    <tr>
+        <td colspan="2" align="center">나만의 1:1 영상 채팅</td>
+    </tr>
+    <tr>
+        <td align="center">Local</td>
+        <td align="center">Remote</td>
+    </tr>
+    <tr>
+        <td width="50%"><video width="100%" id="localVideo" autoplay></video></td>
+        <td width="50%"><video width="100%" id="remoteVideo" autoplay></video></td>
+    </tr>
+</table>
+
+<!--방 이름 입력 & 연결 버튼-->
+<div>
+    방이름
+    <input type="text" id="room" style="width:200px;" placeholder="입장하실 방이름을 입력해주세요.">
+    <input type="button" id="connectBtn" value="연결">
+</div>
+
+<!--채팅창-->
+<div>
+    <textarea rows="10" cols="100" id="chatArea" readonly></textarea>
+</div>
+<div>
+    <input type="text" id="chatMsg" style="width:400px;" placeholder="메세지를 입력하세요." disabled>
+</div>
+</body>
+</html>
