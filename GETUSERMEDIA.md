@@ -50,7 +50,7 @@ var localStream;
 
 $(document).ready(function(){
   openVideo();
-}
+});
 
 ...
 
