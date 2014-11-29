@@ -15,7 +15,7 @@ getUserMedia 함수는 아래의 형태를 가집니다.
 
 우리가 사용할 Chrome에서는 현재 prefix로 webkit이 붙어 있어 실제 호출은
 ```javascript
-  navigator.webitGetUserMedia(constraints, successCallback, errorCallback);
+  navigator.webkitGetUserMedia(constraints, successCallback, errorCallback);
 ```
 
 constraints에서는 얻어올 미디어의 형태를 정의할 수 있습니다.
