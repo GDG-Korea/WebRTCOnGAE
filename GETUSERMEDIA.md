@@ -32,7 +32,7 @@ constraints에서는 얻어올 미디어의 형태를 정의할 수 있습니다
   video : { //최소 640x480 영상 입력을 가져온다.
     mandatory : {
       width : {min : 640},
-      height : {max : 480}
+      height : {min : 480}
     }
   }
 }
@@ -60,7 +60,7 @@ function openVideo(){
     function(stream_){    //successCallback
       localStream = stream_;
       //Chrome에서는 Stream을 바로 video src로 사용할 수 없습니다.
-      $('#localVideo').attr('src', webkitURL.createObjectURL(stream));  
+      $('#localVideo').attr('src', webkitURL.createObjectURL(stream_));  
     },
     function(err_){   //errorCallback
       console.log(err_)
